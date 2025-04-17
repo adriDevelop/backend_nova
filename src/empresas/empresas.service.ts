@@ -60,8 +60,4 @@ export class EmpresasService {
 
         return empresa;
     }
-
-    fillEmpresaWithSeedData(empresa: Empresa[]){
-        
-    }
 }
