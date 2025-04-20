@@ -20,9 +20,8 @@ export class TiendaService {
     }catch (err){
         if (err.code === 11000){
             throw new BadRequestException(`Tienda exists in DB ${JSON.stringify(err.keyValue)}`);
-        }else {
-            throw new InternalServerErrorException(`Cant't create tienda - Check server logs`);
         }
+        return err;
     }
   }
 

@@ -1,6 +1,5 @@
-import { IsArray, IsString } from 'class-validator';
-import { Empleado } from 'src/empleados/entities/empleado.entity';
-import { Producto } from 'src/producto/entities/producto.entity';
+import { IsArray, IsObject, IsString, ValidateNested } from 'class-validator';
+
 
 export class CreateTiendaDto {
 
@@ -8,11 +7,11 @@ export class CreateTiendaDto {
     direccion: string;
 
     @IsString()
-    encargado: Empleado
+    encargado: string
 
     @IsArray()
-    empleados: Empleado[]
+    empleados: string[]
 
     @IsArray()
-    productos: Producto[]
+    productos: string[]
 }
