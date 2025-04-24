@@ -2,6 +2,8 @@
 
 export interface JwtPayload {
     cif: string;
-    nombre: string;
+    idTienda?: string;
+    email?: string;
+    nombre?: string;
 
 }

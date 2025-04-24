@@ -1,4 +1,4 @@
-import { IsBoolean, IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsBoolean, IsEmail, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class CreateEmpleadoDto {
 
@@ -16,6 +16,12 @@ export class CreateEmpleadoDto {
 
     @IsString()
     readonly direccion: string;
+
+    @IsEmail()
+    email: string;
+
+    @IsOptional()
+    clave?: string;
 
     @IsNumber()
     readonly fecha_alta: number;

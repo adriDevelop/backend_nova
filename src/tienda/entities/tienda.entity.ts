@@ -13,13 +13,13 @@ export class Tienda extends Document{
         unique: true,
         index: true
     })
-    encargado: Empleado
+    encargado: string
 
     @Prop()
-    empleados: Empleado[]
+    empleados: string[]
 
     @Prop()
-    productos: Producto[]
+    productos: string[]
 }
 
 export const TiendaSchema = SchemaFactory.createForClass( Tienda );

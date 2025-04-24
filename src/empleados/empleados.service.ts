@@ -4,6 +4,8 @@ import { UpdateEmpleadoDto } from './dto/update-empleado.dto';
 import { Empleado } from './entities/empleado.entity';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
+import { generate } from 'generate-password';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class EmpleadosService {
@@ -15,8 +17,12 @@ export class EmpleadosService {
     ){}
 
   async create(createEmpleadoDto: CreateEmpleadoDto) {
+    const { passwordHashed, password } = this.generateAndCodeClave();
+    console.log(password);
+    createEmpleadoDto.clave = passwordHashed
     try{
         const empleado = await this._empleadosModel.create(createEmpleadoDto);
+        
         return empleado;
     }catch(err){
         if (err === 11000){
@@ -60,4 +66,20 @@ export class EmpleadosService {
         throw new InternalServerErrorException(`Can't remove empleado - Check logs in server`);
     }
   }
+
+  // Metodo que genera la clave y la cifra
+      private generateAndCodeClave(){
+          
+          // Genero la clave de la empresa
+          let password = generate({
+              length: 10,
+              numbers: true
+          });
+  
+          // Y la hasheo
+          const passwordHashed = bcrypt.hashSync(password, 10);
+  
+  
+          return {passwordHashed, password};
+      }
 }

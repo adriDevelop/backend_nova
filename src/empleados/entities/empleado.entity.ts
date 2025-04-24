@@ -19,6 +19,15 @@ export class Empleado extends Document {
     @Prop()
     telefono: number;
 
+    @Prop({
+        unique: true,
+        index: true
+    })
+    email: string
+
+    @Prop()
+    clave: string;
+
     @Prop()
     direccion: string;
 
