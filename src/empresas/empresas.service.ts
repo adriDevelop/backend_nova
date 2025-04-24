@@ -4,6 +4,8 @@ import { CreateEmpresaDto } from './dto/create-empresa.dto';
 import { UpdateEmpresaDto } from './dto/update-empresa.dto';
 import { isValidObjectId, Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
+import { generate } from 'generate-password';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class EmpresasService {
@@ -28,9 +30,14 @@ export class EmpresasService {
 
     async createEmpresa(createEmpresaDto: CreateEmpresaDto){
         createEmpresaDto.nombre = createEmpresaDto.nombre.toLowerCase();
+        const { password, passwordHashed } = this.generateAndCodeClave();
+        createEmpresaDto.clave = passwordHashed
+        console.log(password);
+        
         try{
             const empresa = await this.empresaModel.create(createEmpresaDto);
-            return empresa;
+            const {clave, ...datosEmpresa} = empresa
+            return datosEmpresa.$model;
         }
         catch(err){
             if (err.code === 11000){
@@ -59,5 +66,21 @@ export class EmpresasService {
         await empresa.deleteOne();
 
         return empresa;
+    }
+
+    // Metodo que genera la clave y la cifra
+    private generateAndCodeClave(){
+        
+        // Genero la clave de la empresa
+        let password = generate({
+            length: 10,
+            numbers: true
+        });
+
+        // Y la hasheo
+        const passwordHashed = bcrypt.hashSync(password, 10);
+
+
+        return {passwordHashed, password};
     }
 }

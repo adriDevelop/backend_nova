@@ -11,18 +11,18 @@ export class Empresa extends Document{
     })
     cif: string;
 
-    @Prop({
-        unique: true,
-        index: true
-    })
-    nombre: string
+    @Prop()
+    nombre: string;
+
+    @Prop()
+    clave: string;
 
     @Prop()
     direccion: string
 
     @Prop({
         unique: true,
-        index: true
+        index:true
     })
     telefono: number
 

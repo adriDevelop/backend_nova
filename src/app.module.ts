@@ -7,9 +7,23 @@ import { ProductoModule } from './producto/producto.module';
 import { CategoriasModule } from './categorias/categorias.module';
 import { CarritoModule } from './carrito/carrito.module';
 import { ClienteModule } from './cliente/cliente.module';
+import { AuthModule } from './auth/auth.module';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
-  imports: [EmpresasModule, EmpleadosModule, MongooseModule.forRoot('mongodb://localhost:27017/nova-fin-grado'), TiendaModule, ProductoModule, CategoriasModule, CarritoModule, ClienteModule],
+  imports: [
+    ConfigModule.forRoot({
+        isGlobal: true
+    }),
+    EmpresasModule, 
+    EmpleadosModule, 
+    MongooseModule.forRoot('mongodb://localhost:27017/nova-fin-grado'), 
+    TiendaModule, 
+    ProductoModule, 
+    CategoriasModule, 
+    CarritoModule, 
+    ClienteModule, 
+    AuthModule],
   controllers: [],
   providers: [],
   exports: [],
