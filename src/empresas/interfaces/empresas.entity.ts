@@ -30,7 +30,7 @@ export class Empresa extends Document{
     metodo_pago: string;
 
     @Prop()
-    tiendas?: Tienda[];
+    tiendas: Tienda[];
 }
 
 

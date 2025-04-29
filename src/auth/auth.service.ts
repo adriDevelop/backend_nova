@@ -25,9 +25,11 @@ export class AuthService {
 
     async loginEmpresa(loginEmpresaDto: LoginEmpresaDto){
 
-        let empleados: Empleado[] = [];
+        try {
+
+            let empleados: Empleado[] = [];
         
-        const { clave, cif, email } = loginEmpresaDto;
+        const { clave, cif, emailLogin } = loginEmpresaDto;
 
         // Recojo la empresa
         const empresa = await this.empresaModel.findOne({
@@ -44,10 +46,8 @@ export class AuthService {
             if (!tiendaDB) {
                 throw new NotFoundException('No se ha encontrado la tienda con ese id');
             }
-            console.log(tiendaDB);
             for (const empleado of tiendaDB.empleados) {
                 const empleadoBD = await this.empleadoModel.findById(empleado);
-                console.log(empleadoBD);
                 if (!empleadoBD) {
                     throw new NotFoundException('No se ha encontrado un empleado con ese id');
                 }
@@ -55,10 +55,19 @@ export class AuthService {
             }
         }
         // Recorro el array de empleados para obtener el empleado con el email proporcionado
-        const empleado = this.compruebaClaveEmpleados(empleados, email, clave);
+        let empleado = this.compruebaClaveEmpleados(empleados, emailLogin, clave);
 
-        return {cif: empresa.cif, nombre: empresa.nombre, empleados: empleados, token: this.getJWtToken({cif: empresa.cif, nombre: empleado?.nombre, email: empleado?.email})};
+        if (!empleado){
+            throw new NotFoundException("Las credenciales no son válidas");
+        }
 
+        return {cif: empresa.cif, nombre: empresa.nombre, empleados: empleados, token: this.getJWtToken({cif: empresa.cif, email: emailLogin})};
+
+        }catch (err){
+
+            return err;
+
+        }
     }
 
     private getJWtToken( payload : JwtPayload){
@@ -68,15 +77,23 @@ export class AuthService {
 
     }
 
-    private compruebaClaveEmpleados(empleados: Empleado[], email: string, clave: string): Empleado | void {
-        empleados.find(empleado => {
-            if (empleado.email == email) {
-                if (!bcrypt.compareSync(clave, empleado.clave)) {
-                    throw new UnauthorizedException('Las credenciales introducidas no son validas');
+    compruebaClaveEmpleados(empleados: Empleado[], email: string, clave: string): Boolean {
+        try{
+
+            empleados.find(empleado => {
+                if (empleado.email == email) {
+                    if (!bcrypt.compareSync(clave, empleado.clave)) {
+                        throw new UnauthorizedException('Las credenciales introducidas no son validas');
+                    }
                 }
-                return empleado;
-            }
-    });
+            });
+
+            return true;
+
+        }catch(err){
+            return false;
+        }
+        
     }   
 
 }

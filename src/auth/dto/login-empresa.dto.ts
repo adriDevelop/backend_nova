@@ -5,7 +5,7 @@ export class LoginEmpresaDto {
     cif: string
 
     @IsEmail()
-    email: string
+    emailLogin: string
 
     @IsString()
     clave: string
