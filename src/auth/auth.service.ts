@@ -71,10 +71,19 @@ export class AuthService {
     }
 
     private getJWtToken( payload : JwtPayload){
-        
         const token = this.jwtService.sign( payload );
         return token;
 
+    }
+
+    validaJWT(jwt: string) {
+        
+        try {
+            const payload = this.jwtService.verify(jwt);
+            return payload; // Retorna el payload si el token es válido
+        } catch (err) {
+            throw new UnauthorizedException('Token no válido o expirado');
+        }
     }
 
     compruebaClaveEmpleados(empleados: Empleado[], email: string, clave: string): Boolean {

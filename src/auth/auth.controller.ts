@@ -11,4 +11,9 @@ export class AuthController {
     return this.authService.loginEmpresa(loginEmpresaDto);
   }
 
+  @Post('compruebaToken')
+  compruebaToken(@Body('jwt') jwt: string){
+    return this.authService.validaJWT(jwt);
+  }
+
 }

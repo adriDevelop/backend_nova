@@ -24,7 +24,6 @@ export class JwtStrategy extends PassportStrategy( Strategy ){
         
         // Desestructuramos el payload para generar el JWT
         const {cif, email} = payload;
-
         const empresa = await this.empresaModel.findOne({cif: cif});
 
         if (!empresa){
