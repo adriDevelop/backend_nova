@@ -20,10 +20,10 @@ export class EmpleadosController {
     return this.empleadosService.findAll();
   }
 
-  @Get(':id')
+  @Get(':term')
   @UseGuards(AuthGuard('jwt'))
-  findOne(@Param('id') id: string) {
-    return this.empleadosService.findOne(id);
+  findOne(@Param('term') term: string) {
+    return this.empleadosService.findOne(term);
   }
 
   @Patch(':id')

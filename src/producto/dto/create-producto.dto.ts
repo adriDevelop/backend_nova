@@ -1,4 +1,5 @@
 import { IsArray, IsNumber, IsString } from 'class-validator';
+import { ObjectId } from 'mongoose';
 import { Categoria } from 'src/categorias/entities/categoria.entity';
 
 export class CreateProductoDto {
@@ -7,7 +8,7 @@ export class CreateProductoDto {
     nombre: string;
 
     @IsArray()
-    categorias: Categoria[]
+    categorias: ObjectId[]
 
     @IsNumber()
     cantidad: number;

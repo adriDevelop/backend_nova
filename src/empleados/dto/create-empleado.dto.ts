@@ -11,7 +11,7 @@ export class CreateEmpleadoDto {
     @IsString()
     readonly apellidos: string;
 
-    @IsNumber()
+    @IsString()
     readonly telefono: number;
 
     @IsString()

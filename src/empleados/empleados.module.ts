@@ -3,6 +3,7 @@ import { EmpleadosService } from './empleados.service';
 import { EmpleadosController } from './empleados.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Empleado, EmpleadoSchema } from './entities/empleado.entity';
+import { Tienda, TiendaSchema } from 'src/tienda/entities/tienda.entity';
 
 @Module({
   controllers: [EmpleadosController],
@@ -13,6 +14,11 @@ import { Empleado, EmpleadoSchema } from './entities/empleado.entity';
         [{
             name: Empleado.name,
             schema: EmpleadoSchema
+        }]
+    ), MongooseModule.forFeature(
+        [{
+            name: Tienda.name,
+            schema: TiendaSchema
         }]
     )
   ]

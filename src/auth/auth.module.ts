@@ -32,11 +32,9 @@ import { Tienda, TiendaSchema } from 'src/tienda/entities/tienda.entity';
             schema: TiendaSchema
         }]
       ),
-    
       PassportModule.register({
         defaultStrategy: 'jwt'
       }),
-
       JwtModule.registerAsync({
         imports: [],
         inject:[],

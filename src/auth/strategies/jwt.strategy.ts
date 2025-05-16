@@ -23,7 +23,7 @@ export class JwtStrategy extends PassportStrategy( Strategy ){
     async validate(payload: JwtPayload): Promise<Empresa> {
         
         // Desestructuramos el payload para generar el JWT
-        const {cif, email} = payload;
+        const {cif, email, nombre, es_gerente, es_jefe} = payload;
         const empresa = await this.empresaModel.findOne({cif: cif});
 
         if (!empresa){

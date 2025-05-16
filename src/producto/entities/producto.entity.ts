@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { Document, ObjectId } from 'mongoose';
 import { Categoria } from 'src/categorias/entities/categoria.entity';
 
 @Schema()
@@ -12,7 +12,7 @@ export class Producto extends Document{
     nombre: string;
 
     @Prop()
-    categoria: Categoria[];
+    categorias: ObjectId[];
 
     @Prop()
     cantidad: number;

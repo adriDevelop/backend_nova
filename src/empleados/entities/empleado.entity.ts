@@ -17,7 +17,7 @@ export class Empleado extends Document {
     apellidos: string;
 
     @Prop()
-    telefono: number;
+    telefono: string;
 
     @Prop({
         unique: true,

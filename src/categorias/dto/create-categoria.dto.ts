@@ -4,5 +4,6 @@ export class CreateCategoriaDto {
 
     @IsString()
     nombre: string;
+
     
 }
