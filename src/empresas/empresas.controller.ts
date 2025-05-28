@@ -15,9 +15,9 @@ export class EmpresasController {
         return this._empresasService.findAll();
     }
 
-    @Get(":id")
-    getEmpresaById(@Param('id') id: string){
-        return this._empresasService.findById(id);
+    @Get(":term")
+    getEmpresaById(@Param('term') term: string){
+        return this._empresasService.findById(term);
     }
 
     @Post()

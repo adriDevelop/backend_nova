@@ -9,12 +9,19 @@ import { CarritoModule } from './carrito/carrito.module';
 import { ClienteModule } from './cliente/cliente.module';
 import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
         isGlobal: true,
         envFilePath: '.env'
+    }),
+    ServeStaticModule.forRoot({
+        rootPath: join(__dirname, '..', 'upload'),
+        serveRoot: '/upload',
+        exclude: ['/api(.*)'],
     }),
     EmpresasModule, 
     EmpleadosModule, 

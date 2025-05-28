@@ -3,7 +3,7 @@ import { CreateTiendaDto } from './dto/create-tienda.dto';
 import { UpdateTiendaDto } from './dto/update-tienda.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Tienda } from './entities/tienda.entity';
-import { Model } from 'mongoose';
+import { isValidObjectId, Model, Types } from 'mongoose';
 
 @Injectable()
 export class TiendaService {
@@ -18,9 +18,6 @@ export class TiendaService {
         const tienda = await this.tiendaModel.create(createTiendaDto);
         return tienda;
     }catch (err){
-        if (err.code === 11000){
-            throw new BadRequestException(`Tienda exists in DB ${JSON.stringify(err.keyValue)}`);
-        }
         return err;
     }
   }
@@ -44,6 +41,30 @@ export class TiendaService {
         return tienda;
     }catch (err){
         throw new InternalServerErrorException(`Can't update tienda - Check server logs`);
+    }
+  }
+
+  async uploadImage(id: string, file: Express.Multer.File){
+    try{
+
+        if (file.mimetype != 'image/png'){
+            throw new TypeError("This image hasn't have the correct type");
+        }
+
+        if (!isValidObjectId(id)){
+          throw new NotFoundException('No se ha encontrado la tienda');  
+        }
+
+        const tienda = this.tiendaModel.findById(new Types.ObjectId(id));
+
+        if(!tienda){
+            throw new NotFoundException('No se ha encontrado la tienda');
+        }
+
+        tienda.updateOne({imagen: file.filename + ".png"});
+        
+    }catch(err){
+        console.error;
     }
   }
 

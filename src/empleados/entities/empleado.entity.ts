@@ -19,6 +19,9 @@ export class Empleado extends Document {
     @Prop()
     telefono: string;
 
+    @Prop()
+    imagen: string;
+
     @Prop({
         unique: true,
         index: true

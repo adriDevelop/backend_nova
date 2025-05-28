@@ -83,10 +83,11 @@ export class AuthService {
           nombre: empleado.nombre,
           es_gerente: empleado.es_gerente,
           es_jefe: empleado.es_jefe,
+          imagen: empleado.imagen
         }),
       };
     } catch (err) {
-      return err;
+      throw err;
     }
   }
 

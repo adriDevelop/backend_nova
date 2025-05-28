@@ -1,19 +1,32 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+  UseInterceptors,
+  UploadedFile,
+} from '@nestjs/common';
 import { EmpleadosService } from './empleados.service';
 import { CreateEmpleadoDto } from './dto/create-empleado.dto';
 import { UpdateEmpleadoDto } from './dto/update-empleado.dto';
 import { AuthGuard } from '@nestjs/passport';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import { basename } from 'path';
 
 @Controller('empleados')
 export class EmpleadosController {
   constructor(private readonly empleadosService: EmpleadosService) {}
 
   @Post()
-  @UseGuards(AuthGuard('jwt'))
   create(@Body() createEmpleadoDto: CreateEmpleadoDto) {
     return this.empleadosService.create(createEmpleadoDto);
   }
-  
+
   @Get()
   @UseGuards(AuthGuard('jwt'))
   findAll() {
@@ -28,10 +41,38 @@ export class EmpleadosController {
 
   @Patch(':id')
   @UseGuards(AuthGuard('jwt'))
-  update(@Param('id') id: string, @Body() updateEmpleadoDto: UpdateEmpleadoDto) {
+  update(
+    @Param('id') id: string,
+    @Body() updateEmpleadoDto: UpdateEmpleadoDto,
+  ) {
     return this.empleadosService.update(id, updateEmpleadoDto);
   }
 
+  @Patch(':id/:nombre')
+  @UseGuards(AuthGuard('jwt'))
+  updateClave(
+    @Param('id') id: string,
+    @Param('nombre') nombre: string,
+    @Body('clave') clave: string,
+    @Body('claveAntigua') claveAntigua: string,
+  ) {
+    return this.empleadosService.updatePassword(id, claveAntigua, clave);
+  }
+
+  @Post('upload')
+  @UseInterceptors(FileInterceptor('file', {
+    storage: diskStorage({
+        filename: (req, file, callback) => {
+            const nameOriginal = basename(file.originalname.trim());
+            const nombreEditado = `${nameOriginal}.png`;
+            callback(null, nombreEditado);
+        },
+        destination: "./upload/empleado",
+    })
+  }))
+  uploadImagen(@UploadedFile() file: Express.Multer.File, @Body() id: string) {
+    return this.empleadosService.uploadFile(id, file);
+  }
 
   @Delete(':id')
   @UseGuards(AuthGuard('jwt'))

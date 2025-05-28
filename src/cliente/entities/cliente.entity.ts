@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { IsEmail } from 'class-validator';
+import { IsEmail, IsString } from 'class-validator';
 
 @Schema()
 export class Cliente {
@@ -10,6 +10,10 @@ export class Cliente {
     })
     @IsEmail()
     email: string;
+
+    @Prop()
+    @IsString()
+    imagen: string;
 
 }
 

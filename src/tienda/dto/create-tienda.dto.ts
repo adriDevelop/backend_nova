@@ -1,4 +1,5 @@
-import { IsArray, IsObject, IsString, ValidateNested } from 'class-validator';
+import { IsArray, IsMongoId, IsObject, isString, IsString, ValidateNested } from 'class-validator';
+import ObjectId from 'mongoose';
 
 
 export class CreateTiendaDto {
@@ -7,11 +8,11 @@ export class CreateTiendaDto {
     direccion: string;
 
     @IsString()
-    encargado: string
+    encargado: string;
 
     @IsArray()
-    empleados: string[]
+    empleados: string[];
 
     @IsArray()
-    productos: string[]
+    productos: string[];
 }

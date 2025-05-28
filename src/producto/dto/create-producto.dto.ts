@@ -8,10 +8,13 @@ export class CreateProductoDto {
     nombre: string;
 
     @IsArray()
-    categorias: ObjectId[]
+    categorias: ObjectId[];
 
     @IsNumber()
     cantidad: number;
+
+    @IsArray()
+    tiendas: ObjectId[];
 
     @IsNumber()
     precioUnitario: number;

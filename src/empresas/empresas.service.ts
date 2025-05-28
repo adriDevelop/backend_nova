@@ -21,7 +21,7 @@ export class EmpresasService {
     }
 
     async findById(id: string){
-       const empresa = isValidObjectId(id) ? await this.empresaModel.findById(id) : await this.empresaModel.findOne({nombre: id});
+       const empresa = isValidObjectId(id) ? await this.empresaModel.findById(id) : await this.empresaModel.findOne({cif: id});
         if (!empresa){
             throw new NotFoundException(`Empresa with id ${id} not found`);
         }

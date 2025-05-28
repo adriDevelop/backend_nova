@@ -9,10 +9,7 @@ export class Tienda extends Document{
     @Prop()
     direccion: string
 
-    @Prop({
-        unique: true,
-        index: true
-    })
+    @Prop()
     encargado: string
 
     @Prop()

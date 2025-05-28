@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { CreateProductoDto } from './dto/create-producto.dto';
 import { UpdateProductoDto } from './dto/update-producto.dto';
-import { Model } from 'mongoose';
+import { isValidObjectId, Model, Types } from 'mongoose';
 import { Producto } from './entities/producto.entity';
 import { InjectModel } from '@nestjs/mongoose';
 
@@ -46,6 +46,30 @@ export class ProductoService {
         return producto;
     }catch (err){
         throw new InternalServerErrorException(`Can't update the product - Check server logs`);
+    }
+  }
+
+  async uploadFile(id:string, file: Express.Multer.File){
+    try{
+        if (file.mimetype != 'image/png') {
+            throw new TypeError("This image hasn't have the correct type");
+        }
+
+        if (!isValidObjectId(id)){
+            throw new TypeError("Can't find employee");
+        }
+
+        const producto = this._productosModel.findOne(new Types.ObjectId(id));
+
+        if (!producto){
+            throw new NotFoundException("Can't find product");
+        }
+
+        producto.updateOne({imagen: file.filename + ".png"});
+
+        return producto;
+    }catch(err){
+        console.error;
     }
   }
 

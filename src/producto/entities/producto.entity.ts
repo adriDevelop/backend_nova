@@ -19,6 +19,12 @@ export class Producto extends Document{
 
     @Prop()
     precioUnitario: number;
+
+    @Prop()
+    tiendas: ObjectId[];
+
+    @Prop()
+    imagen: string;
 }
 
 export const ProductoSchema = SchemaFactory.createForClass(Producto);

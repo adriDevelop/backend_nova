@@ -1,9 +1,10 @@
-import { BadRequestException, Injectable, InternalServerErrorException } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { CreateClienteDto } from './dto/create-cliente.dto';
 import { UpdateClienteDto } from './dto/update-cliente.dto';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { Cliente } from './entities/cliente.entity';
 import { InjectModel } from '@nestjs/mongoose';
+import ObjectId from 'mongoose';
 
 @Injectable()
 export class ClienteService {
@@ -46,6 +47,28 @@ export class ClienteService {
         return cliente;
     }catch(err){
         throw new InternalServerErrorException(`Can't update cliente - Check server logs`);
+    }
+  }
+
+  async uploadFile(id: string, file: Express.Multer.File){
+    try{
+
+        if (file.mimetype != 'image/png'){
+            throw new TypeError('This image hasn´t have the correct type');
+        }
+
+        const cliente = this._clienteModel.findById(new Types.ObjectId(id));
+
+        if (!cliente) {
+            throw new NotFoundException('Can´t find the client');
+        }
+
+        cliente.updateOne({imagen: file.filename + ".png"});
+
+        return cliente;
+
+    }catch (err){
+        console.error;
     }
   }
 

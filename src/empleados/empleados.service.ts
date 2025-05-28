@@ -7,8 +7,8 @@ import {
 import { CreateEmpleadoDto } from './dto/create-empleado.dto';
 import { UpdateEmpleadoDto } from './dto/update-empleado.dto';
 import { Empleado } from './entities/empleado.entity';
-import { isValidObjectId, Model } from 'mongoose';
-import { InjectModel } from '@nestjs/mongoose';
+import mongoose, { isValidObjectId, Model, Mongoose, ObjectId, Types } from 'mongoose';
+import { InjectModel, ParseObjectIdPipe } from '@nestjs/mongoose';
 import { generate } from 'generate-password';
 import * as bcrypt from 'bcrypt';
 import { Tienda } from 'src/tienda/entities/tienda.entity';
@@ -29,45 +29,24 @@ export class EmpleadosService {
     console.log(password);
     createEmpleadoDto.clave = passwordHashed;
 
-    try { 
-      const empleado = await this._empleadosModel.create(createEmpleadoDto);
-
-      console.log(empleado);
-      const publica = this.configService.get<string>('MJ_APIKEY_PUBLIC')!;
-      const privada = this.configService.get<string>('MJ_APIKEY_PRIVATE')!;
-
+    try {
       const nodemailer = require('nodemailer');
 
       let transporter = nodemailer.createTransport({
         service: 'gmail',
         auth: {
-            type: 'OAuth2',
-            user: process.env.MAIL_USERNAME,
-            pass: process.env.PASS_USERNAME,
-            clientId: process.env.OAUTH_CLIENTID,
-            clientSecret: process.env.OAUTH_CLIENT_SECRET,
-            refreshToken: process.env.OAUTH_REFRESH_TOKEN
-        }
+          type: 'OAuth2',
+          user: process.env.MAIL_USERNAME,
+          pass: process.env.PASS_USERNAME,
+          clientId: process.env.OAUTH_CLIENTID,
+          clientSecret: process.env.OAUTH_CLIENT_SECRET,
+          refreshToken: process.env.OAUTH_REFRESH_TOKEN,
+        },
       });
 
-      let mailOptions = {
-        from: process.env.MAIL_USERNAME,
-        to: empleado.email,
-        subject: "Aquí tienes tus credenciales de acceso",
-        text: `Email: ${empleado.email}, Clave: ${password}`
-      }
+      const empleado = createEmpleadoDto;
 
-      transporter.sendMail(mailOptions, function(err, data){
-        if (err){
-            console.log(`Error ${err}`);
-        }else {
-            console.log('Mail sent correctly');
-        }
-      })
-
-      if (!empleado) {
-        throw new Error("Can't create employee in DB");
-      }
+      console.log(empleado);
 
       const tienda = await this._tiendasModel.findById(empleado.id_tienda);
 
@@ -75,9 +54,42 @@ export class EmpleadosService {
         throw new Error("Can't find the business to link the employee");
       }
 
-      await tienda.updateOne({ $push: { empleados: empleado._id } });
 
+    if (empleado.es_gerente || empleado.es_jefe){
+      for (const empleadoTienda of tienda.empleados){
+        const empleadoEncontrado = await this._empleadosModel.findById(empleadoTienda);
+        if (empleadoEncontrado?.es_gerente || empleadoEncontrado?.es_jefe) {
+            throw new Error("No se puede crear este empleado porque ya existe un gerente");
+        }
+      }
+    }
+
+    const empleadoCreado = await this._empleadosModel.create(createEmpleadoDto);
+
+    let mailOptions = {
+        from: process.env.MAIL_USERNAME,
+        to: empleado.email,
+        subject: 'Aquí tienes tus credenciales de acceso',
+        text: `Email: ${empleado.email}, Clave: ${password}`,
+      };
+
+      if (!empleado) {
+        throw new Error("Can't create employee in DB");
+      }
+
+     await tienda.updateOne({ $push: { empleados: empleadoCreado._id } });
+     await tienda.updateOne({ encargado: empleadoCreado._id});
+    
       console.log(tienda);
+
+      transporter.sendMail(mailOptions, function (err, data) {
+        if (err) {
+          console.log(`Error ${err}`);
+        } else {
+          console.log('Mail sent correctly');
+        }
+      });
+
       return empleado;
     } catch (err: any) {
       if (err.code === 11000) {
@@ -86,7 +98,6 @@ export class EmpleadosService {
         );
       } else {
         console.error(err);
-        throw new InternalServerErrorException(`No se pudo crear el empleado`);
       }
     }
   }
@@ -132,9 +143,81 @@ export class EmpleadosService {
     }
   }
 
+  async uploadFile(id: string, file: Express.Multer.File) {
+    try {
+      if (file.mimetype != 'image/png') {
+        throw new TypeError('This image has´t have the correct type');
+      }
+
+      if (!isValidObjectId(id)){
+        throw new TypeError('Can´t find employee');
+      }
+
+      const empleado = this._empleadosModel.findById(new Types.ObjectId(id));
+
+      if (!empleado) {
+        throw new NotFoundException('No se ha encontrado al empleado');
+      }
+
+      empleado.updateOne({imagen: file.filename});
+
+      return empleado;
+    } catch (err) {
+        console.error;
+    }
+  }
+
+  async updatePassword(id: string, claveAntigua: string, clave: string) {
+    try {
+      const hash = bcrypt.hashSync(clave, 10);
+
+      const empleadoActualizar = await this._empleadosModel.findOne({
+        _id: id,
+      });
+
+      if (!empleadoActualizar) {
+        throw new NotFoundException('No se ha encontrado al empleado');
+      }
+
+      if (bcrypt.compareSync(claveAntigua, empleadoActualizar.clave)) {
+        const empleado = await this._empleadosModel.findOneAndUpdate(
+          { _id: id },
+          { clave: hash },
+          { new: true }, // retorna el documento actualizado
+        );
+
+        if (!empleado) {
+          throw new NotFoundException('No se ha encontrado un empleado');
+        }
+
+        return empleado;
+      }
+    } catch (err) {
+      console.error('Error al actualizar clave:', err);
+      throw new InternalServerErrorException(
+        "Can't update password - Check error logs",
+      );
+    }
+  }
+
   async remove(id: string) {
     try {
-      const empleado = this._empleadosModel.findByIdAndDelete(id);
+        
+      const empleado= await this._empleadosModel.findByIdAndDelete(id);
+
+      if (!empleado){
+        throw new NotFoundException("No se ha encontrado al empleado con ese id");
+      }
+
+      const tienda = await this._tiendasModel.findByIdAndUpdate( 
+        {_id: empleado.id_tienda},
+        { $pull: {empleados: empleado._id} }
+      )
+
+      if (!tienda){
+        throw new NotFoundException("No se ha podido eliminar al empleado de la tienda")    
+      }
+
       return empleado;
     } catch (err) {
       throw new InternalServerErrorException(
