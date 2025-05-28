@@ -17,6 +17,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { basename } from 'path';
+import { Auth } from 'src/auth/entities/auth.entity';
 
 @Controller('empleados')
 export class EmpleadosController {
@@ -46,6 +47,16 @@ export class EmpleadosController {
     @Body() updateEmpleadoDto: UpdateEmpleadoDto,
   ) {
     return this.empleadosService.update(id, updateEmpleadoDto);
+  }
+
+  @Patch(':id')
+  @UseGuards(AuthGuard('jwt'))
+  updateGerente(
+    @Param('id') id: string,
+    @Body('gerente') gerente: boolean,
+    @Body('idTienda') idTienda: string
+  ){
+    return this.empleadosService.uploadGerente(id, idTienda, gerente);
   }
 
   @Patch(':id/:nombre')

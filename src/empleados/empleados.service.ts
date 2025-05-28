@@ -132,6 +132,7 @@ export class EmpleadosService {
         id,
         updateEmpleadoDto,
       );
+
       if (!empleado) {
         throw new NotFoundException(`Empleado with id ${id} not found`);
       }
@@ -140,6 +141,39 @@ export class EmpleadosService {
       throw new InternalServerErrorException(
         `Can't update empleado - Check logs in server`,
       );
+    }
+  }
+
+  async uploadGerente(id: string, idTienda: string, gerente: boolean) {
+    try{
+
+        const empleadoActualizar = await this._empleadosModel.findById(id);
+
+        const tienda = await this._tiendasModel.findById(idTienda);
+
+        if (!gerente) {
+            for (const empleadoTiendaId of tienda!.empleados) {
+                const empleadoTienda = await this._empleadosModel.findById(empleadoTiendaId);
+                if (empleadoTienda && empleadoTienda.es_gerente) {
+                    if (empleadoActualizar && empleadoActualizar.nombre === empleadoTienda.nombre) {
+                        await this._empleadosModel.findByIdAndUpdate(empleadoActualizar._id, { es_gerente: gerente });
+                    }
+                }
+            }
+        }
+
+        if (gerente){
+            for (const empleadoTiendaId of tienda!.empleados) {
+                const empleadoTienda = await this._empleadosModel.findById(empleadoTiendaId);
+                if (empleadoTienda && empleadoTienda.es_gerente) {
+                    if (empleadoActualizar && empleadoActualizar.nombre === empleadoTienda.nombre) {
+                        await this._empleadosModel.findByIdAndUpdate(empleadoActualizar._id, { es_gerente: gerente });
+                    }
+                }
+            }
+        }
+    }catch(err){
+        console.error;
     }
   }
 
