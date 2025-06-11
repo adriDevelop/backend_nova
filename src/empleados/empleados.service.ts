@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -7,7 +8,13 @@ import {
 import { CreateEmpleadoDto } from './dto/create-empleado.dto';
 import { UpdateEmpleadoDto } from './dto/update-empleado.dto';
 import { Empleado } from './entities/empleado.entity';
-import mongoose, { isValidObjectId, Model, Mongoose, ObjectId, Types } from 'mongoose';
+import mongoose, {
+  isValidObjectId,
+  Model,
+  Mongoose,
+  ObjectId,
+  Types,
+} from 'mongoose';
 import { InjectModel, ParseObjectIdPipe } from '@nestjs/mongoose';
 import { generate } from 'generate-password';
 import * as bcrypt from 'bcrypt';
@@ -54,19 +61,22 @@ export class EmpleadosService {
         throw new Error("Can't find the business to link the employee");
       }
 
-
-    if (empleado.es_gerente || empleado.es_jefe){
-      for (const empleadoTienda of tienda.empleados){
-        const empleadoEncontrado = await this._empleadosModel.findById(empleadoTienda);
-        if (empleadoEncontrado?.es_gerente || empleadoEncontrado?.es_jefe) {
-            throw new Error("No se puede crear este empleado porque ya existe un gerente");
+      if (empleado.es_gerente || empleado.es_jefe) {
+        for (const empleadoTienda of tienda.empleados) {
+          const empleadoEncontrado =
+            await this._empleadosModel.findById(empleadoTienda);
+          if (empleadoEncontrado?.es_gerente || empleadoEncontrado?.es_jefe) {
+            throw new Error(
+              'No se puede crear este empleado porque ya existe un gerente',
+            );
+          }
         }
       }
-    }
 
-    const empleadoCreado = await this._empleadosModel.create(createEmpleadoDto);
+      const empleadoCreado =
+        await this._empleadosModel.create(createEmpleadoDto);
 
-    let mailOptions = {
+      let mailOptions = {
         from: process.env.MAIL_USERNAME,
         to: empleado.email,
         subject: 'Aquí tienes tus credenciales de acceso',
@@ -77,9 +87,9 @@ export class EmpleadosService {
         throw new Error("Can't create employee in DB");
       }
 
-     await tienda.updateOne({ $push: { empleados: empleadoCreado._id } });
-     await tienda.updateOne({ encargado: empleadoCreado._id});
-    
+      await tienda.updateOne({ $push: { empleados: empleadoCreado._id } });
+      await tienda.updateOne({ encargado: empleadoCreado._id });
+
       console.log(tienda);
 
       transporter.sendMail(mailOptions, function (err, data) {
@@ -144,36 +154,40 @@ export class EmpleadosService {
     }
   }
 
-  async uploadGerente(id: string, idTienda: string, gerente: boolean) {
-    try{
+  async updateGerente(id: string, idTienda: string, gerente: boolean) {
+    try {
+      const empleadoActualizar = await this._empleadosModel.findById(id);
+      const tienda = await this._tiendasModel.findById(idTienda);
 
-        const empleadoActualizar = await this._empleadosModel.findById(id);
+      if (!empleadoActualizar || !tienda) {
+        throw new NotFoundException('Empleado o tienda no encontrados');
+      }
 
-        const tienda = await this._tiendasModel.findById(idTienda);
+      if (gerente) {
+        // Comprobar si ya hay un gerente en la tienda
+        const empleados = await this._empleadosModel.find({
+          _id: { $in: tienda.empleados },
+        });
+        const yaHayGerente = empleados.some((e) => e.es_gerente);
 
-        if (!gerente) {
-            for (const empleadoTiendaId of tienda!.empleados) {
-                const empleadoTienda = await this._empleadosModel.findById(empleadoTiendaId);
-                if (empleadoTienda && empleadoTienda.es_gerente) {
-                    if (empleadoActualizar && empleadoActualizar.nombre === empleadoTienda.nombre) {
-                        await this._empleadosModel.findByIdAndUpdate(empleadoActualizar._id, { es_gerente: gerente });
-                    }
-                }
-            }
+        if (yaHayGerente) {
+          throw new ConflictException('Ya existe un gerente en esta tienda');
         }
+      }
 
-        if (gerente){
-            for (const empleadoTiendaId of tienda!.empleados) {
-                const empleadoTienda = await this._empleadosModel.findById(empleadoTiendaId);
-                if (empleadoTienda && empleadoTienda.es_gerente) {
-                    if (empleadoActualizar && empleadoActualizar.nombre === empleadoTienda.nombre) {
-                        await this._empleadosModel.findByIdAndUpdate(empleadoActualizar._id, { es_gerente: gerente });
-                    }
-                }
-            }
-        }
-    }catch(err){
-        console.error;
+      // Actualizar el campo
+      const empleado = await this._empleadosModel.findByIdAndUpdate(empleadoActualizar._id, {
+        es_gerente: gerente,
+      });
+
+      if (empleado?.es_gerente){
+        const tienda =  await this._tiendasModel.findByIdAndUpdate(idTienda, {encargado: empleado._id});
+        console.log(tienda);
+      }
+
+      return { message: 'Gerente actualizado correctamente' };
+    } catch (err) {
+      console.error;
     }
   }
 
@@ -183,7 +197,7 @@ export class EmpleadosService {
         throw new TypeError('This image has´t have the correct type');
       }
 
-      if (!isValidObjectId(id)){
+      if (!isValidObjectId(id)) {
         throw new TypeError('Can´t find employee');
       }
 
@@ -193,11 +207,11 @@ export class EmpleadosService {
         throw new NotFoundException('No se ha encontrado al empleado');
       }
 
-      empleado.updateOne({imagen: file.filename});
+      empleado.updateOne({ imagen: file.filename });
 
       return empleado;
     } catch (err) {
-        console.error;
+      console.error;
     }
   }
 
@@ -236,20 +250,23 @@ export class EmpleadosService {
 
   async remove(id: string) {
     try {
-        
-      const empleado= await this._empleadosModel.findByIdAndDelete(id);
+      const empleado = await this._empleadosModel.findByIdAndDelete(id);
 
-      if (!empleado){
-        throw new NotFoundException("No se ha encontrado al empleado con ese id");
+      if (!empleado) {
+        throw new NotFoundException(
+          'No se ha encontrado al empleado con ese id',
+        );
       }
 
-      const tienda = await this._tiendasModel.findByIdAndUpdate( 
-        {_id: empleado.id_tienda},
-        { $pull: {empleados: empleado._id} }
-      )
+      const tienda = await this._tiendasModel.findByIdAndUpdate(
+        { _id: empleado.id_tienda },
+        { $pull: { empleados: empleado._id } },
+      );
 
-      if (!tienda){
-        throw new NotFoundException("No se ha podido eliminar al empleado de la tienda")    
+      if (!tienda) {
+        throw new NotFoundException(
+          'No se ha podido eliminar al empleado de la tienda',
+        );
       }
 
       return empleado;

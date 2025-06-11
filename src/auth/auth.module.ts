@@ -8,6 +8,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { Empleado, EmpleadoSchema } from 'src/empleados/entities/empleado.entity';
 import { Tienda, TiendaSchema } from 'src/tienda/entities/tienda.entity';
+import { Cliente, ClienteSchema } from 'src/cliente/entities/cliente.entity';
 
 @Module({
   controllers: [AuthController],
@@ -30,6 +31,12 @@ import { Tienda, TiendaSchema } from 'src/tienda/entities/tienda.entity';
         [{
             name: Tienda.name,
             schema: TiendaSchema
+        }]
+      ),
+      MongooseModule.forFeature(
+        [{
+            name: Cliente.name,
+            schema: ClienteSchema
         }]
       ),
       PassportModule.register({

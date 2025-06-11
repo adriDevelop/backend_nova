@@ -1,8 +1,20 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { IsEmail, IsString } from 'class-validator';
+import { IsDateString, IsEmail, IsOptional, IsString } from 'class-validator';
 
 @Schema()
 export class Cliente {
+
+    @Prop()
+    @IsString()
+    nombre: string;
+
+    @Prop()
+    @IsString()
+    apellidos: string;
+
+    @Prop()
+    @IsDateString()
+    fecha_nacimiento: Date;
 
     @Prop({
         unique: true,
@@ -13,7 +25,15 @@ export class Cliente {
 
     @Prop()
     @IsString()
+    password: string;
+
+    @Prop()
+    @IsString()
     imagen: string;
+
+    @Prop()
+    @IsString()
+    carrito: string[];
 
 }
 

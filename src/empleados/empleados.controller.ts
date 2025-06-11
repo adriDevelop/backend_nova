@@ -49,14 +49,14 @@ export class EmpleadosController {
     return this.empleadosService.update(id, updateEmpleadoDto);
   }
 
-  @Patch(':id')
+  @Patch('cambiarGerente/:id/:idtienda')
   @UseGuards(AuthGuard('jwt'))
   updateGerente(
     @Param('id') id: string,
     @Body('gerente') gerente: boolean,
-    @Body('idTienda') idTienda: string
+    @Param('idtienda') idtienda: string,
   ){
-    return this.empleadosService.uploadGerente(id, idTienda, gerente);
+    return this.empleadosService.updateGerente(id, idtienda, gerente);
   }
 
   @Patch(':id/:nombre')

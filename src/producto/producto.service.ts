@@ -65,7 +65,7 @@ export class ProductoService {
             throw new NotFoundException("Can't find product");
         }
 
-        producto.updateOne({imagen: file.filename + ".png"});
+        producto.updateOne({imagen: file.filename});
 
         return producto;
     }catch(err){

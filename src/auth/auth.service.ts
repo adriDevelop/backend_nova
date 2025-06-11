@@ -14,6 +14,9 @@ import { JwtService } from '@nestjs/jwt';
 import { Empleado } from 'src/empleados/entities/empleado.entity';
 import { Tienda } from 'src/tienda/entities/tienda.entity';
 import { Types } from 'mongoose';
+import { LoginClienteDTO } from './dto/login-cliente.dto';
+import { Cliente } from 'src/cliente/entities/cliente.entity';
+import { JwtPayloadCliente } from './interfaces/jwt-payload-cliente.interface';
 
 @Injectable()
 export class AuthService {
@@ -24,6 +27,8 @@ export class AuthService {
     private readonly empleadoModel: Model<Empleado>,
     @InjectModel(Tienda.name)
     private readonly tiendaModel: Model<Tienda>,
+    @InjectModel(Cliente.name)
+    private readonly clienteModel: Model<Cliente>,
     private readonly jwtService: JwtService,
   ) {}
 
@@ -62,7 +67,6 @@ export class AuthService {
           if (empleadoBD) {
             empleados.push(empleadoBD!);
           }
-          
         }
       }
 
@@ -83,7 +87,7 @@ export class AuthService {
           nombre: empleado.nombre,
           es_gerente: empleado.es_gerente,
           es_jefe: empleado.es_jefe,
-          imagen: empleado.imagen
+          imagen: empleado.imagen,
         }),
       };
     } catch (err) {
@@ -91,7 +95,7 @@ export class AuthService {
     }
   }
 
-  private getJWtToken(payload: JwtPayload) {
+  private getJWtToken(payload: JwtPayload | JwtPayloadCliente) {
     const token = this.jwtService.sign(payload);
     return token;
   }
@@ -102,6 +106,39 @@ export class AuthService {
       return payload; // Retorna el payload si el token es válido
     } catch (err) {
       throw new UnauthorizedException('Token no válido o expirado');
+    }
+  }
+
+  async loginCliente(loginClienteDto: LoginClienteDTO) {
+    try {
+      // Recojo del cliente introducido el email y la contraseña
+      const { email, password } = loginClienteDto;
+
+      const cliente = await this.clienteModel.findOne({
+        email: email,
+      });
+
+      if (!cliente) {
+        throw new NotFoundException(
+          'No se ha encontrado a ningun cliente con ese email',
+        );
+      }
+
+      // Compruebo que la clave introducida sea correcta
+      if (cliente.password != password) {
+        throw new Error('La clave no es correcta');
+      }
+
+      return {
+        token: this.getJWtToken({
+          id: cliente.id,
+          nombre: cliente.nombre,
+          apellidos: cliente.apellidos,
+          email: cliente.email
+        }),
+      };
+    } catch (err) {
+      throw err;
     }
   }
 
